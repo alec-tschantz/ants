@@ -1,7 +1,7 @@
 import numpy as np
 
 ADD_ANT_EVERY = 50
-INIT_X = 25
+INIT_X = 20
 INIT_Y = 30
 
 NEST_FACTOR = 0.1

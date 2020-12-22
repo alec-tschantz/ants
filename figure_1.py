@@ -5,8 +5,8 @@ from ants import main, plot_path
 
 NAME = "main"
 NUM_STEPS = 2000
-INIT_ANTS = 200
-MAX_ANTS = 200
+INIT_ANTS = 70
+MAX_ANTS = 70
 
 # standard prior
 PRIOR_TICK = 1
@@ -23,14 +23,15 @@ if __name__ == "__main__":
         max_ants=MAX_ANTS,
         C=C,
         save=True,
-        switch=False,
+        switch=True,
         name=NAME,
+        ant_only_gif=False,
     )
-    print(f"num_round_trips {num_round_trips} / coeff {coeff/ MAX_ANTS}")
+    print(f"num_round_trips {num_round_trips} / coeff {coeff / MAX_ANTS}")
     f = open(f"imgs/{NAME}.txt", "w")
-    f.write(f"num_round_trips {num_round_trips} / coeff {coeff/ MAX_ANTS}")
+    f.write(f"num_round_trips {num_round_trips} / coeff {coeff / MAX_ANTS}")
     f.close()
 
     
-    for i in range(min(len(paths), 30)):
+    for i in range(len(paths)):
         plot_path(np.random.choice(paths), f"imgs/path_{i}.png")

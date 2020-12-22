@@ -1,7 +1,7 @@
 import numpy as np
 
 import config as cf
-from ants import main, plot_path
+from ants import main
 
 NUM_AVERAGE = 5
 NAME = "compare"
@@ -17,56 +17,42 @@ for o in range(cf.NUM_OBSERVATIONS):
     C[o] = prior
     prior += PRIOR_TICK
 
+
+def run():
+    num_round_trips, paths, coeff = main(
+        num_steps=NUM_STEPS,
+        init_ants=INIT_ANTS,
+        max_ants=MAX_ANTS,
+        C=C,
+        save=True,
+        switch=True,
+        name=NAME,
+    )
+    print(f"num_round_trips_{MAX_ANTS} {num_round_trips} / coeff {coeff}")
+    f = open(f"imgs/{NAME}.txt", "a+")
+    f.write(f"num_round_trips_{MAX_ANTS} {num_round_trips} / coeff {coeff}\n")
+    f.close()
+
+
 if __name__ == "__main__":
 
     for _ in range(NUM_AVERAGE):
+        NAME = "compare_10"
         INIT_ANTS = 10
         MAX_ANTS = 10
+        run()
 
-        num_round_trips, paths, coeff = main(
-            num_steps=NUM_STEPS,
-            init_ants=INIT_ANTS,
-            max_ants=MAX_ANTS,
-            C=C,
-            save=False,
-            switch=False,
-            name=NAME,
-        )
-        print(f"num_round_trips_10 {num_round_trips} / coeff_10 {coeff/ MAX_ANTS}")
-        f = open(f"imgs/{NAME}.txt", "w")
-        f.write(f"num_round_trips_10 {num_round_trips} / coeff_10 {coeff/ MAX_ANTS}")
-        f.close()
+        NAME = "compare_30"
+        INIT_ANTS = 30
+        MAX_ANTS = 30
+        run()
 
-        INIT_ANTS = 100
-        MAX_ANTS = 100
-
-        num_round_trips, paths, coeff = main(
-            num_steps=NUM_STEPS,
-            init_ants=INIT_ANTS,
-            max_ants=MAX_ANTS,
-            C=C,
-            save=False,
-            switch=False,
-            name=NAME,
-        )
-        print(f"num_round_trips_100 {num_round_trips} / coeff_100 {coeff/ MAX_ANTS}")
-        f = open(f"imgs/{NAME}.txt", "w")
-        f.write(f"num_round_trips_100 {num_round_trips} / coeff_100 {coeff/ MAX_ANTS}")
-        f.close()
-
-        INIT_ANTS = 1000
-        MAX_ANTS = 1000
-
-        num_round_trips, paths, coeff = main(
-            num_steps=NUM_STEPS,
-            init_ants=INIT_ANTS,
-            max_ants=MAX_ANTS,
-            C=C,
-            save=False,
-            switch=False,
-            name=NAME,
-        )
-        print(f"num_round_trips_1000 {num_round_trips} / coeff_1000 {coeff/ MAX_ANTS}")
-        f = open(f"imgs/{NAME}.txt", "w")
-        f.write(f"num_round_trips_1000 {num_round_trips} / coeff_1000 {coeff/ MAX_ANTS}")
-        f.close()
+        NAME = "compare_50"
+        INIT_ANTS = 50
+        MAX_ANTS = 50
+        run()
+        
+        NAME = "compare_70"
+        INIT_ANTS = 70
+        MAX_ANTS = 70
+        run()

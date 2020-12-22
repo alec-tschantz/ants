@@ -7,6 +7,7 @@ import imageio
 
 matplotlib.use("TkAgg")
 
+
 class Ant(object):
     def __init__(self, mdp, init_x, init_y):
         self.mdp = mdp
@@ -81,10 +82,12 @@ class Env(object):
         if self.check_walls(ant.x_pos, ant.y_pos, x_pos, y_pos):
             ant.update_forward(x_pos, y_pos)
 
+        """
         if len(ant.traj) > cf.MAX_LEN:
             pos = ant.traj[0]
             ant.update_backward(pos[0], pos[1])
             ant.traj = []
+        """
 
     def step_backward(self, ant):
         path_len = len(ant.traj)
@@ -117,7 +120,7 @@ class Env(object):
                     self.obs_matrix[:, x, y] = 0.0
                     self.obs_matrix[curr_obs, x, y] = 1.0
 
-    def plot(self, ants, savefig=False, name=""):
+    def plot(self, ants, savefig=False, name="", ant_only_gif=False):
         x_pos_forward, y_pos_forward = [], []
         x_pos_backward, y_pos_backward = [], []
         for ant in ants:
@@ -132,11 +135,15 @@ class Env(object):
         fig, ax = plt.subplots()
         ax.imshow(img.T, cmap="gray")
         plot_matrix = np.zeros((cf.GRID[0], cf.GRID[1]))
+
         for x in range(cf.GRID[0]):
             for y in range(cf.GRID[1]):
                 curr_obs = np.argmax(self.obs_matrix[:, x, y])
                 plot_matrix[x, y] = curr_obs
-        ax.imshow(plot_matrix.T, alpha=0.7, vmin=0)
+
+        if ant_only_gif == False:
+            ax.imshow(plot_matrix.T, alpha=0.7, vmin=0)
+
         if not savefig:
             ax.scatter(x_pos_forward, y_pos_forward, color="red", s=5)
             ax.scatter(x_pos_backward, y_pos_backward, color="blue", s=5)
@@ -145,10 +152,11 @@ class Env(object):
             fig.canvas.draw()
             img = np.frombuffer(fig.canvas.tostring_rgb(), dtype="uint8")
             img = img.reshape(fig.canvas.get_width_height()[::-1] + (3,))
-            plt.close()
+            plt.close("all")
             return img
         else:
             plt.savefig(name)
+        plt.close("all")
 
 
 class MDP(object):
@@ -256,13 +264,14 @@ def plot_path(path, save_name):
     ax.set_ylim(cf.GRID[1])
     ax.plot(path[:, 0], path[:, 1], "-o", color="red", alpha=0.4)
     plt.savefig(save_name)
+    plt.close("all")
 
 
 def save_gif(imgs, path, fps=32):
     imageio.mimsave(path, imgs, fps=fps)
 
 
-def main(num_steps, init_ants, max_ants, C, save=True, switch=False, name=""):
+def main(num_steps, init_ants, max_ants, C, save=True, switch=False, name="", ant_only_gif=False):
     env = Env()
     ants = []
     paths = []
@@ -276,7 +285,16 @@ def main(num_steps, init_ants, max_ants, C, save=True, switch=False, name=""):
 
     imgs = []
     completed_trips = 0
+    distance = 0
+    ant_locations = []
+    round_trips_over_time = []
     for t in range(num_steps):
+        t_dis = 0
+
+        for ant in ants:
+            for ant_2 in ants:
+                t_dis += dis(ant.x_pos, ant.y_pos, ant_2.x_pos, ant_2.y_pos)
+        distance += t_dis / len(ants)
 
         if t % (num_steps // 100) == 0:
             print(f"{t}/{num_steps}")
@@ -289,7 +307,7 @@ def main(num_steps, init_ants, max_ants, C, save=True, switch=False, name=""):
             ant.mdp.reset(obs)
             ants.append(ant)
 
-        if switch and t == num_steps // 2:
+        if switch and t % (num_steps // 2) == 0:
             # switch
             cf.FOOD_LOCATION[0] = cf.GRID[0] - cf.FOOD_LOCATION[0]
 
@@ -303,20 +321,33 @@ def main(num_steps, init_ants, max_ants, C, save=True, switch=False, name=""):
             else:
                 is_complete, traj = env.step_backward(ant)
                 completed_trips += int(is_complete)
+
                 if is_complete:
                     paths.append(traj)
         env.decay()
 
         if save:
-            if t in np.arange(0, num_steps, num_steps // 10):
+            if t in np.arange(0, num_steps, num_steps // 20):
                 env.plot(ants, savefig=True, name=f"imgs/{name}_{t}.png")
             else:
-                imgs.append(env.plot(ants))
+                img = env.plot(ants, ant_only_gif=ant_only_gif)
+                imgs.append(img)
 
+        round_trips_over_time.append(completed_trips / max_ants)
+        ant_locations.append([[ant.x_pos, ant.y_pos] for ant in ants])
+
+    """
     dis_coeff = 0
     for ant in ants:
         dis_coeff += sum(ant.distance)
+    """
 
     if save:
         save_gif(imgs, f"imgs/{name}.gif")
-    return completed_trips, paths, dis_coeff
+
+    ant_locations = np.array(ant_locations)
+    round_trips_over_time = np.array(round_trips_over_time)
+    np.save(f"imgs/{name}_locations", ant_locations)
+    np.save(f"imgs/{name}_round_trips", round_trips_over_time)
+
+    return completed_trips, paths, distance
