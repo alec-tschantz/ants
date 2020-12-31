@@ -5,7 +5,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import imageio
 
-matplotlib.use("TkAgg")
+matplotlib.use("Agg")
 
 
 class Ant(object):
@@ -350,4 +350,4 @@ def main(num_steps, init_ants, max_ants, C, save=True, switch=False, name="", an
     np.save(f"imgs/{name}_locations", ant_locations)
     np.save(f"imgs/{name}_round_trips", round_trips_over_time)
 
-    return completed_trips, paths, distance
+    return completed_trips, np.array(paths), distance

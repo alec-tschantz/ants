@@ -1,4 +1,5 @@
 import numpy as np
+from pathlib import Path 
 
 import config as cf
 from ants import main, plot_path
@@ -7,6 +8,8 @@ NAME = "main"
 NUM_STEPS = 2000
 INIT_ANTS = 70
 MAX_ANTS = 70
+
+Path("imgs").mkdir(parents=True, exist_ok=True)
 
 # standard prior
 PRIOR_TICK = 1

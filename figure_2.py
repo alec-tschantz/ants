@@ -1,7 +1,11 @@
 import numpy as np
+from pathlib import Path 
 
 import config as cf
 from ants import main
+
+Path("imgs").mkdir(parents=True, exist_ok=True)
+
 
 NUM_AVERAGE = 5
 NAME = "compare"
