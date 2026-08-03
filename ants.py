@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import config as cf
 
 import numpy as np
@@ -75,12 +77,11 @@ class Env(object):
         x_pos = np.clip(ant.x_pos + delta[0], 1, cf.GRID[0] - 2)
         y_pos = np.clip(ant.y_pos + delta[1], 1, cf.GRID[1] - 2)
 
-        if self.check_food(x_pos, y_pos) and np.random.rand() < cf.NEST_FACTOR:
-            ant.is_returning = True
-            ant.backward_step = 0
-
         if self.check_walls(ant.x_pos, ant.y_pos, x_pos, y_pos):
             ant.update_forward(x_pos, y_pos)
+            if self.check_food(x_pos, y_pos) and np.random.rand() < cf.NEST_FACTOR:
+                ant.is_returning = True
+                ant.backward_step = 0
 
         """
         if len(ant.traj) > cf.MAX_LEN:
@@ -90,6 +91,9 @@ class Env(object):
         """
 
     def step_backward(self, ant):
+        if not ant.traj:
+            ant.is_returning = False
+            return False, None
         path_len = len(ant.traj)
         next_step = path_len - (ant.backward_step + 1)
         pos = ant.traj[next_step]
@@ -267,10 +271,22 @@ def plot_path(path, save_name):
 
 
 def save_gif(imgs, path, fps=32):
-    imageio.mimsave(path, imgs, fps=fps)
+    imageio.mimsave(path, imgs, duration=1000.0 / fps)
+
+
+def _trajectory_array(trajectories):
+    try:
+        return np.asarray(trajectories)
+    except ValueError:
+        result = np.empty(len(trajectories), dtype=object)
+        result[:] = trajectories
+        return result
 
 
 def main(num_steps, init_ants, max_ants, C, save=True, switch=False, name="", ant_only_gif=False):
+    if save:
+        Path("imgs").mkdir(parents=True, exist_ok=True)
+
     env = Env()
     ants = []
     paths = []
@@ -344,9 +360,8 @@ def main(num_steps, init_ants, max_ants, C, save=True, switch=False, name="", an
     if save and imgs:
         save_gif(imgs, f"imgs/{name}.gif")
 
-    ant_locations = np.array(ant_locations)
-    round_trips_over_time = np.array(round_trips_over_time)
-    np.save(f"imgs/{name}_locations", ant_locations)
-    np.save(f"imgs/{name}_round_trips", round_trips_over_time)
+    if save:
+        np.save(f"imgs/{name}_locations", _trajectory_array(ant_locations))
+        np.save(f"imgs/{name}_round_trips", np.array(round_trips_over_time))
 
-    return completed_trips, np.array(paths), distance
+    return completed_trips, _trajectory_array(paths), distance
