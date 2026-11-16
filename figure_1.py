@@ -37,4 +37,4 @@ if __name__ == "__main__":
 
     
     for i in range(len(paths)):
-        plot_path(np.random.choice(paths), f"imgs/path_{i}.png")
+        plot_path(paths[np.random.choice(len(paths))], f"imgs/path_{i}.png")
